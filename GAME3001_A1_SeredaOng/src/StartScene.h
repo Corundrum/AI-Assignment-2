@@ -21,10 +21,8 @@ public:
 	virtual void start() override;
 	
 private:
-	Label* m_pStartLabel{};
-	Label* m_pInstructionsLabel{};
-
-	Ship* m_pShip{};
+	Label* m_pSimonName{};
+	Label* m_pAaronName{};
 
 	Button* m_pStartButton;
 };
