@@ -44,15 +44,14 @@ void PlayScene::handleEvents()
 	{
 		TheGame::Instance().quit();
 	}
-
-	if (EventManager::Instance().isKeyDown(SDL_SCANCODE_1))
+	
+	if (EventManager::Instance().keyPressed(SDL_SCANCODE_H) && m_getGridEnabled() == 0)
 	{
-		TheGame::Instance().changeSceneState(START_SCENE);
+		m_setGridEnabled(1);
 	}
-
-	if (EventManager::Instance().isKeyDown(SDL_SCANCODE_2))
+	else if (EventManager::Instance().keyPressed(SDL_SCANCODE_H) && m_getGridEnabled() == 1)
 	{
-		TheGame::Instance().changeSceneState(END_SCENE);
+		m_setGridEnabled(0);
 	}
 }
 
@@ -246,15 +245,6 @@ void PlayScene::GUI_Function()
 	//ImGui::ShowDemoWindow();
 
 	ImGui::Begin("Lab  Debug Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove);
-
-	ImGui::Separator();
-
-	static bool toggleGrid = false;
-	if (ImGui::Checkbox("Toggle Grid", &toggleGrid))
-	{
-		m_isGridEnabled = toggleGrid;
-		m_setGridEnabled(m_isGridEnabled);
-	}
 
 	ImGui::Separator();
 
