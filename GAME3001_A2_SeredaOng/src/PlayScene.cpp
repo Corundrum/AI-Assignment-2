@@ -82,6 +82,30 @@ void PlayScene::start()
 	SoundManager::Instance().load("../Assets/audio/yay.ogg", "yay", SOUND_SFX);
 	SoundManager::Instance().load("../Assets/audio/thunder.ogg", "boom", SOUND_SFX);
 
+	m_pInstructions = new Label("Press 'F' to find the shortest path to the target!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 460.0f);
+	addChild(m_pInstructions);
+
+	m_pInstructions = new Label("Press 'M' to move the target!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 480.0f);
+	addChild(m_pInstructions);
+
+	m_pInstructions = new Label("Press 'R' to reset the scene!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 500.0f);
+	addChild(m_pInstructions);
+
+	m_pInstructions = new Label("Press 'H' to open the debug menu!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 520.0f);
+	addChild(m_pInstructions);
+
+	m_pInstructions = new Label("'Left Click' a tile to set the start tile!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 540.0f);
+	addChild(m_pInstructions);
+
+	m_pInstructions = new Label("'Right Click' a tile to set the goal tile!", "Consolas");
+	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 560.0f);
+	addChild(m_pInstructions);
+
 	m_computeTileCosts();
 
 	ImGuiWindowFrame::Instance().setGUIFunction(std::bind(&PlayScene::GUI_Function, this));
