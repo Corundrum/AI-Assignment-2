@@ -4,7 +4,7 @@
 
 Target::Target()
 {
-	TextureManager::Instance().load("../Assets/textures/Circle.png","circle");
+	TextureManager::Instance().load("../Assets/textures/Parking.png","circle");
 
 	const auto size = TextureManager::Instance().getTextureSize("circle");
 	setWidth(size.x);
@@ -41,7 +41,6 @@ void Target::clean()
 
 void Target::m_move()
 {
-	getTransform()->position = getTransform()->position + getRigidBody()->velocity * 5.0f;
 }
 
 void Target::m_checkBounds()

@@ -2,11 +2,12 @@
 #ifndef __PLAY_SCENE__
 #define __PLAY_SCENE__
 
+#include "Car.h"
+#include "Heuristic.h"
 #include "Scene.h"
-#include "Plane.h"
-#include "Player.h"
-#include "Button.h"
 #include "Label.h"
+#include "Target.h"
+#include "Tile.h"
 
 class PlayScene : public Scene
 {
@@ -22,19 +23,31 @@ public:
 	virtual void start() override;
 private:
 	// IMGUI Function
-	void GUI_Function() const;
+	void GUI_Function();
 	std::string m_guiTitle;
-	
+
 	glm::vec2 m_mousePosition;
 
-	Plane* m_pPlaneSprite;
-	Player* m_pPlayer;
-	bool m_playerFacingRight;
+	// Game Objects
+	Target* m_pParking;
+	Car* m_pCar;
 
-	// UI Items
-	Button* m_pBackButton;
-	Button* m_pNextButton;
-	Label* m_pInstructionsLabel;
+	//Pathfinding objects and functions
+	std::vector<Tile*> m_pGrid;
+	bool m_isGridEnabled;
+
+	void m_buildGrid();
+	bool m_getGridEnabled() const;
+	void m_setGridEnabled(bool state);
+	void m_computeTileCosts();
+
+	//convenience functions
+	Tile* m_getTile(int col, int row);
+	Tile* m_getTile(glm::vec2 grid_position);
+
+
+	//Heuristic
+	Heuristic m_currentHeuristic;
 };
 
 #endif /* defined (__PLAY_SCENE__) */

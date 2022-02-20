@@ -1,6 +1,7 @@
 #include "PlayScene.h"
 #include "Game.h"
 #include "EventManager.h"
+#include "Config.h"
 
 // required for IMGUI
 #include "imgui.h"
@@ -19,12 +20,15 @@ PlayScene::~PlayScene()
 void PlayScene::draw()
 {
 	drawDisplayList();
+
 	SDL_SetRenderDrawColor(Renderer::Instance().getRenderer(), 255, 255, 255, 255);
 }
 
 void PlayScene::update()
 {
 	updateDisplayList();
+
+
 }
 
 void PlayScene::clean()
@@ -35,64 +39,6 @@ void PlayScene::clean()
 void PlayScene::handleEvents()
 {
 	EventManager::Instance().update();
-
-	// handle player movement with GameController
-	if (SDL_NumJoysticks() > 0)
-	{
-		if (EventManager::Instance().getGameController(0) != nullptr)
-		{
-			const auto deadZone = 10000;
-			if (EventManager::Instance().getGameController(0)->LEFT_STICK_X > deadZone)
-			{
-				m_pPlayer->setAnimationState(PLAYER_RUN_RIGHT);
-				m_playerFacingRight = true;
-			}
-			else if (EventManager::Instance().getGameController(0)->LEFT_STICK_X < -deadZone)
-			{
-				m_pPlayer->setAnimationState(PLAYER_RUN_LEFT);
-				m_playerFacingRight = false;
-			}
-			else
-			{
-				if (m_playerFacingRight)
-				{
-					m_pPlayer->setAnimationState(PLAYER_IDLE_RIGHT);
-				}
-				else
-				{
-					m_pPlayer->setAnimationState(PLAYER_IDLE_LEFT);
-				}
-			}
-		}
-	}
-
-
-	// handle player movement if no Game Controllers found
-	if (SDL_NumJoysticks() < 1)
-	{
-		if (EventManager::Instance().isKeyDown(SDL_SCANCODE_A))
-		{
-			m_pPlayer->setAnimationState(PLAYER_RUN_LEFT);
-			m_playerFacingRight = false;
-		}
-		else if (EventManager::Instance().isKeyDown(SDL_SCANCODE_D))
-		{
-			m_pPlayer->setAnimationState(PLAYER_RUN_RIGHT);
-			m_playerFacingRight = true;
-		}
-		else
-		{
-			if (m_playerFacingRight)
-			{
-				m_pPlayer->setAnimationState(PLAYER_IDLE_RIGHT);
-			}
-			else
-			{
-				m_pPlayer->setAnimationState(PLAYER_IDLE_LEFT);
-			}
-		}
-	}
-	
 
 	if (EventManager::Instance().isKeyDown(SDL_SCANCODE_ESCAPE))
 	{
@@ -112,93 +58,225 @@ void PlayScene::handleEvents()
 
 void PlayScene::start()
 {
+
 	// Set GUI Title
 	m_guiTitle = "Play Scene";
-	
-	// Plane Sprite
-	m_pPlaneSprite = new Plane();
-	addChild(m_pPlaneSprite);
 
-	// Player Sprite
-	m_pPlayer = new Player();
-	addChild(m_pPlayer);
-	m_playerFacingRight = true;
+	//setup the grid
+	m_buildGrid();
+	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
+	m_currentHeuristic = MANHATTAN;
 
-	// Back Button
-	m_pBackButton = new Button("../Assets/textures/backButton.png", "backButton", BACK_BUTTON);
-	m_pBackButton->getTransform()->position = glm::vec2(300.0f, 400.0f);
-	m_pBackButton->addEventListener(CLICK, [&]()-> void
-	{
-		m_pBackButton->setActive(false);
-		TheGame::Instance().changeSceneState(START_SCENE);
-	});
+	m_pParking = new Target();
+	m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
+	m_pParking->setGridPosition(15.0f, 11.0f);
+	m_getTile(15, 11)->setTileStatus(GOAL);
+	addChild(m_pParking);
 
-	m_pBackButton->addEventListener(MOUSE_OVER, [&]()->void
-	{
-		m_pBackButton->setAlpha(128);
-	});
+	m_pCar = new Car();
+	m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
+	m_pCar->setGridPosition(1.0f, 3.0f);
+	m_getTile(1, 3)->setTileStatus(START);
+	addChild(m_pCar);
 
-	m_pBackButton->addEventListener(MOUSE_OUT, [&]()->void
-	{
-		m_pBackButton->setAlpha(255);
-	});
-	addChild(m_pBackButton);
+	SoundManager::Instance().load("../Assets/audio/yay.ogg", "yay", SOUND_SFX);
+	SoundManager::Instance().load("../Assets/audio/thunder.ogg", "boom", SOUND_SFX);
 
-	// Next Button
-	m_pNextButton = new Button("../Assets/textures/nextButton.png", "nextButton", NEXT_BUTTON);
-	m_pNextButton->getTransform()->position = glm::vec2(500.0f, 400.0f);
-	m_pNextButton->addEventListener(CLICK, [&]()-> void
-	{
-		m_pNextButton->setActive(false);
-		TheGame::Instance().changeSceneState(END_SCENE);
-	});
-
-	m_pNextButton->addEventListener(MOUSE_OVER, [&]()->void
-	{
-		m_pNextButton->setAlpha(128);
-	});
-
-	m_pNextButton->addEventListener(MOUSE_OUT, [&]()->void
-	{
-		m_pNextButton->setAlpha(255);
-	});
-
-	addChild(m_pNextButton);
-
-	/* Instructions Label */
-	m_pInstructionsLabel = new Label("Press the backtick (`) character to toggle Debug View", "Consolas");
-	m_pInstructionsLabel->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 500.0f);
-
-	addChild(m_pInstructionsLabel);
+	m_computeTileCosts();
 
 	ImGuiWindowFrame::Instance().setGUIFunction(std::bind(&PlayScene::GUI_Function, this));
 }
 
-void PlayScene::GUI_Function() const
+void PlayScene::m_buildGrid()
 {
+	const auto tile_size = Config::TILE_SIZE;
+
+	//add tiles to grid
+	for (int row = 0; row < Config::ROW_NUM; ++row)
+	{
+		for (int col = 0; col < Config::COL_NUM; ++col)
+		{
+			Tile* tile = new Tile();
+			tile->getTransform()->position = glm::vec2(col * tile_size, row * tile_size);
+			tile->setGridPosition(col, row);
+			addChild(tile);
+			tile->addLabels();
+			tile->setEnabled(false);
+			m_pGrid.push_back(tile);
+		}
+
+	}
+	//create neighbor references
+	for (int row = 0; row < Config::ROW_NUM; ++row)
+	{
+		for (int col = 0; col < Config::COL_NUM; ++col)
+		{
+			Tile* tile = m_getTile(col, row);
+
+			//Top most row?
+			if (row == 0)
+			{
+				tile->setNeighbourTile(TOP_TILE, nullptr);
+			}
+			else
+			{
+				tile->setNeighbourTile(TOP_TILE, m_getTile(col, row - 1));
+			}
+			//Right most col?
+			if (col == Config::COL_NUM - 1)
+			{
+				tile->setNeighbourTile(RIGHT_TILE, nullptr);
+			}
+			else
+			{
+				tile->setNeighbourTile(RIGHT_TILE, m_getTile(col + 1, row));
+			}
+
+			//Bottom most row?
+			if (row == Config::ROW_NUM - 1)
+			{
+				tile->setNeighbourTile(BOTTOM_TILE, nullptr);
+			}
+			else
+			{
+				tile->setNeighbourTile(BOTTOM_TILE, m_getTile(col, row + 1));
+			}
+
+			//Left most col?
+			if (col == 0)
+			{
+				tile->setNeighbourTile(LEFT_TILE, nullptr);
+			}
+			else
+			{
+				tile->setNeighbourTile(LEFT_TILE, m_getTile(col - 1, row));
+			}
+		}
+
+	}
+
+}
+
+bool PlayScene::m_getGridEnabled() const
+{
+	return m_isGridEnabled;
+}
+
+void PlayScene::m_setGridEnabled(const bool state)
+{
+	m_isGridEnabled = state;
+	for (auto tile : m_pGrid)
+	{
+		tile->setEnabled(m_isGridEnabled); // enables the tile
+		tile->setLabelsEnabled(m_isGridEnabled); // enables the labels
+	}
+}
+
+void PlayScene::m_computeTileCosts()
+{
+	float distance = 0.0f;
+	float dx = 0.0f;
+	float dy = 0.0f;
+
+	//loop through each tile in the grid
+	for (auto tile : m_pGrid)
+	{
+		// f (distance estimate) = g (tile cost) + h (heuristic function)
+		switch (m_currentHeuristic)
+		{
+		case MANHATTAN:
+			dx = abs(tile->getGridPosition().x - m_pParking->getGridPosition().x);
+			dy = abs(tile->getGridPosition().y - m_pParking->getGridPosition().y);
+			distance = dx + dy;
+			break;
+		case EUCLIDEAN:
+			// compute the euclidean distance for each tile to the goal
+			distance = Util::distance(tile->getGridPosition(), m_pParking->getGridPosition());
+			break;
+		}
+
+		tile->setTileCost(distance);
+	}
+}
+
+Tile* PlayScene::m_getTile(const int col, const int row)
+{
+	return m_pGrid[(row * Config::COL_NUM) + col];
+}
+
+Tile* PlayScene::m_getTile(glm::vec2 grid_position)
+{
+	const auto col = grid_position.x;
+	const auto row = grid_position.y;
+	return m_pGrid[(row * Config::COL_NUM) + col];
+}
+
+
+void PlayScene::GUI_Function()
+{
+	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 	// Always open with a NewFrame
 	ImGui::NewFrame();
 
 	// See examples by uncommenting the following - also look at imgui_demo.cpp in the IMGUI filter
 	//ImGui::ShowDemoWindow();
-	
-	ImGui::Begin("Your Window Title Goes Here", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove);
 
-	if(ImGui::Button("My Button"))
+	ImGui::Begin("Lab  Debug Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove);
+
+	ImGui::Separator();
+
+	static bool toggleGrid = false;
+	if (ImGui::Checkbox("Toggle Grid", &toggleGrid))
 	{
-		std::cout << "My Button Pressed" << std::endl;
+		m_isGridEnabled = toggleGrid;
+		m_setGridEnabled(m_isGridEnabled);
 	}
 
 	ImGui::Separator();
 
-	static float float3[3] = { 0.0f, 1.0f, 1.5f };
-	if(ImGui::SliderFloat3("My Slider", float3, 0.0f, 2.0f))
+	// heuristic selection
+
+	static int radio = m_currentHeuristic;
+	ImGui::Text("Heuristic Type");
+	ImGui::RadioButton("Manhattan", &radio, MANHATTAN);
+	ImGui::SameLine();
+	ImGui::RadioButton("Euclidean", &radio, EUCLIDEAN);
+	if (m_currentHeuristic != radio)
 	{
-		std::cout << float3[0] << std::endl;
-		std::cout << float3[1] << std::endl;
-		std::cout << float3[2] << std::endl;
-		std::cout << "---------------------------\n";
+		m_currentHeuristic = static_cast<Heuristic>(radio);
+		m_computeTileCosts();
 	}
-	
+
+	ImGui::Separator();
+
+	// target properties
+
+	static int start_position[2] = { m_pCar->getGridPosition().x, m_pCar->getGridPosition().y };
+	if (ImGui::SliderInt2("Start Position", start_position, 0.0f, Config::COL_NUM - 1))
+	{
+		if (start_position[1] > Config::ROW_NUM - 1)
+		{
+			start_position[1] = Config::ROW_NUM - 1;
+		}
+		m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
+		m_pCar->getTransform()->position = m_getTile(start_position[0], start_position[1])->getTransform()->position + offset;
+		m_pCar->setGridPosition(start_position[0], start_position[1]);
+		m_getTile(m_pCar->getGridPosition())->setTileStatus(START);
+	}
+
+	static int goal_position[2] = { m_pParking->getGridPosition().x, m_pParking->getGridPosition().y };
+	if (ImGui::SliderInt2("Goal Position", goal_position, 0.0f, Config::COL_NUM - 1))
+	{
+		if (start_position[1] > Config::ROW_NUM - 1)
+		{
+			start_position[1] = Config::ROW_NUM - 1;
+		}
+		m_getTile(m_pParking->getGridPosition())->setTileStatus(UNVISITED);
+		m_pParking->getTransform()->position = m_getTile(goal_position[0], goal_position[1])->getTransform()->position + offset;
+		m_pParking->setGridPosition(goal_position[0], goal_position[1]);
+		m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
+		m_computeTileCosts();
+	}
+
 	ImGui::End();
 }
