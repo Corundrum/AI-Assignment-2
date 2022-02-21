@@ -77,7 +77,7 @@ void PlayScene::handleEvents()
 	//tbd
 
 	//SELECT START TILE [LEFT CLICK]
-	if (EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1)
+	if ((EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1) && m_pParking->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40),int(EventManager::Instance().getMousePosition().y / 40 )))
 	{
 		m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
 		m_pCar->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ))->getTransform()->position + offset;
@@ -86,6 +86,14 @@ void PlayScene::handleEvents()
 	}
 
 	//SELECT GOAL TILE [RIGHT CLICK]
+	if (EventManager::Instance().getMouseButton(RIGHT) && m_getGridEnabled() == 1 && m_pCar->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40)))
+	{
+		m_getTile(m_pParking->getGridPosition())->setTileStatus(UNVISITED);
+		m_pParking->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40))->getTransform()->position + offset;
+		m_pParking->setGridPosition(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40));
+		m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
+		m_computeTileCosts();
+	}
 
 }
 
@@ -100,18 +108,15 @@ void PlayScene::start()
 
 	m_pParking = new Target();
 	m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
-	m_pParking->setGridPosition(15.0f, 11.0f);
+	m_pParking->setGridPosition(15, 11);
 	m_getTile(15, 11)->setTileStatus(GOAL);
 	addChild(m_pParking);
 
 	m_pCar = new Car();
 	m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
-	m_pCar->setGridPosition(1.0f, 3.0f);
+	m_pCar->setGridPosition(1, 3);
 	m_getTile(1, 3)->setTileStatus(START);
 	addChild(m_pCar);
-
-	SoundManager::Instance().load("../Assets/audio/yay.ogg", "yay", SOUND_SFX);
-	SoundManager::Instance().load("../Assets/audio/thunder.ogg", "boom", SOUND_SFX);
 
 	m_pInstructions = new Label("Press 'F' to find the shortest path to the target!", "Consolas");
 	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 460.0f);
