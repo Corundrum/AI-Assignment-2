@@ -102,6 +102,10 @@ void PlayScene::start()
 
 	// Set GUI Title
 	m_guiTitle = "Play Scene";
+
+	SoundManager::Instance().load("../Assets/audio/citymusic.mp3", "citymusic", SOUND_MUSIC);
+	SoundManager::Instance().playMusic("citymusic", -1, 0);
+	SoundManager::Instance().setMusicVolume(5);
 	//setup the grid
 	m_buildGrid();
 	m_currentHeuristic = MANHATTAN;
