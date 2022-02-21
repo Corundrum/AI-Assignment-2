@@ -40,11 +40,13 @@ void PlayScene::handleEvents()
 {
 	EventManager::Instance().update();
 
+	//QUIT [KEY = ESC]
 	if (EventManager::Instance().isKeyDown(SDL_SCANCODE_ESCAPE))
 	{
 		TheGame::Instance().quit();
 	}
 	
+	//DISPLAY DEBUG [KEY = H]
 	if (EventManager::Instance().keyPressed(SDL_SCANCODE_H) && m_getGridEnabled() == 0)
 	{
 		m_setGridEnabled(1);
@@ -53,6 +55,38 @@ void PlayScene::handleEvents()
 	{
 		m_setGridEnabled(0);
 	}
+
+	//RESET SCENE [KEY = R]
+	if (EventManager::Instance().keyPressed(SDL_SCANCODE_R))
+	{
+		m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
+		m_pCar->setGridPosition(1.0f, 3.0f);
+		m_getTile(1, 3)->setTileStatus(START);
+
+		m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
+		m_pParking->setGridPosition(15.0f, 11.0f);
+		m_getTile(15, 11)->setTileStatus(GOAL);
+	}
+
+	//MOVE PLAYER [KEY = M]
+	
+	//tbd
+
+	//CALCULATE DISTANCE [KEY = F]
+
+	//tbd
+
+	//SELECT START TILE [LEFT CLICK]
+	if (EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1)
+	{
+		m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
+		m_pCar->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ))->getTransform()->position + offset;
+		m_pCar->setGridPosition(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ));
+		m_getTile(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ))->setTileStatus(START);
+	}
+
+	//SELECT GOAL TILE [RIGHT CLICK]
+
 }
 
 void PlayScene::start()
@@ -60,10 +94,8 @@ void PlayScene::start()
 
 	// Set GUI Title
 	m_guiTitle = "Play Scene";
-
 	//setup the grid
 	m_buildGrid();
-	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 	m_currentHeuristic = MANHATTAN;
 
 	m_pParking = new Target();
@@ -237,7 +269,6 @@ Tile* PlayScene::m_getTile(glm::vec2 grid_position)
 
 void PlayScene::GUI_Function()
 {
-	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 	// Always open with a NewFrame
 	ImGui::NewFrame();
 
@@ -266,7 +297,7 @@ void PlayScene::GUI_Function()
 	// target properties
 
 	static int start_position[2] = { m_pCar->getGridPosition().x, m_pCar->getGridPosition().y };
-	if (ImGui::SliderInt2("Start Position", start_position, 0.0f, Config::COL_NUM - 1))
+	if (ImGui::SliderInt2("Start Position", start_position, 0, Config::COL_NUM - 1))
 	{
 		if (start_position[1] > Config::ROW_NUM - 1)
 		{
@@ -279,7 +310,7 @@ void PlayScene::GUI_Function()
 	}
 
 	static int goal_position[2] = { m_pParking->getGridPosition().x, m_pParking->getGridPosition().y };
-	if (ImGui::SliderInt2("Goal Position", goal_position, 0.0f, Config::COL_NUM - 1))
+	if (ImGui::SliderInt2("Goal Position", goal_position, 0, Config::COL_NUM - 1))
 	{
 		if (start_position[1] > Config::ROW_NUM - 1)
 		{

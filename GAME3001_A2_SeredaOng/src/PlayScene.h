@@ -37,6 +37,8 @@ private:
 	std::vector<Tile*> m_pGrid;
 	bool m_isGridEnabled;
 
+	glm::vec2 offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
+
 	void m_buildGrid();
 	bool m_getGridEnabled() const;
 	void m_setGridEnabled(bool state);
