@@ -59,22 +59,22 @@ void PlayScene::handleEvents()
 	//RESET SCENE [KEY = R]
 	if (EventManager::Instance().keyPressed(SDL_SCANCODE_R))
 	{
-		m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
-		m_pCar->setGridPosition(1.0f, 3.0f);
-		m_getTile(1, 3)->setTileStatus(START);
-
-		m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
-		m_pParking->setGridPosition(15.0f, 11.0f);
-		m_getTile(15, 11)->setTileStatus(GOAL);
+		m_resetSimulation();
 	}
 
 	//MOVE PLAYER [KEY = M]
 	
-	//tbd
+	if (!m_shipIsMoving)
+	{
+		m_shipIsMoving = true;
+	}
 
 	//CALCULATE DISTANCE [KEY = F]
 
-	//tbd
+	if (EventManager::Instance().keyPressed(SDL_SCANCODE_F))
+	{
+		m_findShortestPath();
+	}
 
 	//SELECT START TILE [LEFT CLICK]
 	if ((EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1) && m_pParking->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40),int(EventManager::Instance().getMousePosition().y / 40 )))
@@ -275,6 +275,171 @@ Tile* PlayScene::m_getTile(glm::vec2 grid_position)
 	return m_pGrid[(row * Config::COL_NUM) + col];
 }
 
+void PlayScene::m_findShortestPath()
+{
+	// check if pathList is empty
+	if (m_pPathList.empty())
+	{
+		// Step 1. Add Start Position
+		Tile* start_tile = m_getTile(m_pCar->getGridPosition());
+		start_tile->setTileStatus(OPEN);
+		m_pOpenList.push_back(start_tile);
+
+		bool goal_found = false;
+
+		// Step 2. Loop until the OpenList is empty or the Goal is found
+		while (!m_pOpenList.empty() && !goal_found)
+		{
+			// initialization
+			auto min = INFINITY;
+			Tile* min_tile;
+			int min_tile_index = 0;
+			int count = 0;
+			std::vector<Tile*> neighbour_list;
+
+			// Step 2.a - Get together the neighbours to check
+			// loop through each neighbour in right-winding order (Top - Right - Bottom - Left)
+			for (int index = 0; index < NUM_OF_NEIGHBOUR_TILES; ++index)
+			{
+				const auto neighbour = m_pOpenList[0]->getNeighbourTile(static_cast<NeighbourTile>(index));
+				if (neighbour == nullptr || neighbour->getTileStatus() == IMPASSABLE)
+				{
+					continue; // ignore neighbours that are inappropriate
+				}
+				neighbour_list.push_back(neighbour);
+			}
+
+			// Step 2.b - for every neighbour in the neighbour list
+			for (auto neighbour : neighbour_list)
+			{
+				// Step 2.b1 - check if the neighbour is not the goal
+				if (neighbour->getTileStatus() != GOAL)
+				{
+					// check if neighbour tile cost is less than minimum found so far...
+					if (neighbour->getTileCost() < min)
+					{
+						min = neighbour->getTileCost();
+						min_tile = neighbour;
+						min_tile_index = count;
+					}
+					count++;
+				}
+				else // neighbour is the goal tile
+				{
+					min_tile = neighbour;
+					m_pPathList.push_back(min_tile);
+					goal_found = true;
+					break;
+				}
+			}
+
+			// Step 2.c - remove the reference of the current tile in the open list
+			m_pPathList.push_back(m_pOpenList[0]); // add the top of the open list to the path_list
+			m_pOpenList.pop_back(); // empties the open list
+
+			// Step 2.d - add the min_tile to the openList
+			m_pOpenList.push_back(min_tile);
+			min_tile->setTileStatus(OPEN);
+			neighbour_list.erase(neighbour_list.begin() + min_tile_index); // remove the min_tile from the neighbour list
+
+			// Step 2.e - push all remaining neighbours onto the closed list
+			for (auto neighbour : neighbour_list)
+			{
+				if (neighbour->getTileStatus() == UNVISITED)
+				{
+					neighbour->setTileStatus(CLOSED);
+					m_ClosedList.push_back(neighbour);
+				}
+			}
+		}
+
+		// Alex's hack - to correct the algorithm
+		Tile* goal = m_pPathList.at(m_pPathList.size() - 2);
+		m_pPathList.erase(m_pPathList.end() - 2);
+		m_pPathList.push_back(goal);
+
+		m_displayPathList();
+	}
+}
+
+void PlayScene::m_displayPathList()
+{
+	for (auto tile : m_pPathList)
+	{
+		std::cout << "(" << tile->getGridPosition().x << ", " << tile->getGridPosition().y << ")" << std::endl;
+	}
+	std::cout << "Path Length" << m_pPathList.size() << std::endl;
+}
+
+void PlayScene::m_resetPathfinding()
+{
+	//clear the tile vectors
+	m_pPathList.clear();
+	m_pPathList.shrink_to_fit();
+	m_pOpenList.clear();
+	m_pOpenList.shrink_to_fit();
+	m_ClosedList.clear();
+	m_ClosedList.shrink_to_fit();
+
+	//reset tile statuses
+	for (auto tile : m_pGrid)
+	{
+		tile->setTileStatus(UNVISITED);
+	}
+
+	m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
+	goal_position[0] = m_pParking->getGridPosition().x;
+	goal_position[1] = m_pParking->getGridPosition().y;
+	m_getTile(m_pCar->getGridPosition())->setTileStatus(START);
+	start_position[0] = m_pCar->getGridPosition().x;
+	start_position[1] = m_pCar->getGridPosition().y;
+	moveCounter = 0;
+	m_shipIsMoving = false;
+
+}
+
+void PlayScene::m_resetSimulation()
+{
+	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
+	m_resetPathfinding();
+	// clear current status of ship and target tiles
+	m_getTile(m_pParking->getGridPosition())->setTileStatus(UNVISITED);
+	m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
+
+	// move target back to starting location
+	m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
+	m_pParking->setGridPosition(15.0f, 11.0f);
+	m_getTile(15, 11)->setTileStatus(GOAL);
+	goal_position[0] = m_pParking->getGridPosition().x;
+	goal_position[1] = m_pParking->getGridPosition().y;
+
+	// move spaceship back to starting location
+	m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
+	m_pCar->setGridPosition(1.0f, 3.0f);
+	m_getTile(1, 3)->setTileStatus(START);
+	start_position[0] = m_pCar->getGridPosition().x;
+	start_position[1] = m_pCar->getGridPosition().y;
+}
+
+void PlayScene::m_moveShip()
+{
+	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
+	if (moveCounter < m_pPathList.size())
+	{
+		auto curret_path_tile_position = m_pPathList[moveCounter]->getGridPosition();
+		m_pCar->getTransform()->position = m_getTile(curret_path_tile_position)->getTransform()->position + offset;
+		m_pCar->setGridPosition(curret_path_tile_position.x, curret_path_tile_position.y);
+		if (Game::Instance().getFrames() % 20 == 0)
+		{
+			moveCounter++;
+		}
+	}
+	else
+	{
+		m_shipIsMoving = false;
+	}
+}
+
 
 void PlayScene::GUI_Function()
 {
@@ -305,7 +470,8 @@ void PlayScene::GUI_Function()
 
 	// target properties
 
-	static int start_position[2] = { m_pCar->getGridPosition().x, m_pCar->getGridPosition().y };
+	start_position[0] = m_pCar->getGridPosition().x;
+	start_position[1] = m_pCar->getGridPosition().y;
 	if (ImGui::SliderInt2("Start Position", start_position, 0, Config::COL_NUM - 1))
 	{
 		if (start_position[1] > Config::ROW_NUM - 1)
@@ -318,7 +484,8 @@ void PlayScene::GUI_Function()
 		m_getTile(m_pCar->getGridPosition())->setTileStatus(START);
 	}
 
-	static int goal_position[2] = { m_pParking->getGridPosition().x, m_pParking->getGridPosition().y };
+	goal_position[0] = m_pParking->getGridPosition().x;
+	goal_position[1] = m_pParking->getGridPosition().y;
 	if (ImGui::SliderInt2("Goal Position", goal_position, 0, Config::COL_NUM - 1))
 	{
 		if (start_position[1] > Config::ROW_NUM - 1)
@@ -334,3 +501,6 @@ void PlayScene::GUI_Function()
 
 	ImGui::End();
 }
+
+int PlayScene::start_position[2];
+int PlayScene::goal_position[2];
