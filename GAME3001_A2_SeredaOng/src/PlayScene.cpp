@@ -81,20 +81,22 @@ void PlayScene::handleEvents()
 	}
 
 	//SELECT START TILE [LEFT CLICK]
-	if ((EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1) && m_pParking->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40),int(EventManager::Instance().getMousePosition().y / 40 )))
+	if (EventManager::Instance().getMouseButton(LEFT) && m_getGridEnabled() == 1 && m_pParking->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40),int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))
+		&& m_getTile(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))->getTileStatus() != IMPASSABLE)
 	{
 		m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
-		m_pCar->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ))->getTransform()->position + offset;
-		m_pCar->setGridPosition(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ));
-		m_getTile(int(EventManager::Instance().getMousePosition().x / 40 ), int(EventManager::Instance().getMousePosition().y / 40 ))->setTileStatus(START);
+		m_pCar->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))->getTransform()->position + offset;
+		m_pCar->setGridPosition(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE));
+		m_getTile(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))->setTileStatus(START);
 	}
 
 	//SELECT GOAL TILE [RIGHT CLICK]
-	if (EventManager::Instance().getMouseButton(RIGHT) && m_getGridEnabled() == 1 && m_pCar->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40)))
+	if (EventManager::Instance().getMouseButton(RIGHT) && m_getGridEnabled() == 1 && m_pCar->getGridPosition() != glm::vec2(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))
+		&& m_getTile(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))->getTileStatus() != IMPASSABLE)
 	{
 		m_getTile(m_pParking->getGridPosition())->setTileStatus(UNVISITED);
-		m_pParking->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40))->getTransform()->position + offset;
-		m_pParking->setGridPosition(int(EventManager::Instance().getMousePosition().x / 40), int(EventManager::Instance().getMousePosition().y / 40));
+		m_pParking->getTransform()->position = m_getTile(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE))->getTransform()->position + offset;
+		m_pParking->setGridPosition(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE));
 		m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
 		m_computeTileCosts();
 	}
