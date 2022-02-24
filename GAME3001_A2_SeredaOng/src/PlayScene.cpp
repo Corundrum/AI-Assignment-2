@@ -19,6 +19,7 @@ PlayScene::~PlayScene()
 
 void PlayScene::draw()
 {
+	TextureManager::Instance().draw("citymap", 0, 0, 0, 255);
 	drawDisplayList();
 
 	SDL_SetRenderDrawColor(Renderer::Instance().getRenderer(), 255, 255, 255, 255);
@@ -108,6 +109,8 @@ void PlayScene::start()
 
 	// Set GUI Title
 	m_guiTitle = "Play Scene";
+
+	TextureManager::Instance().load("../Assets/Textures/citymap.jpg", "citymap");
 
 	SoundManager::Instance().load("../Assets/audio/citymusic.mp3", "citymusic", SOUND_MUSIC);
 	SoundManager::Instance().playMusic("citymusic", -1, 0);
