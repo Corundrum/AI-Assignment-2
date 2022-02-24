@@ -115,7 +115,7 @@ void PlayScene::start()
 	m_currentHeuristic = MANHATTAN;
 
 	m_pParking = new Target();
-	m_pParking->setGridPosition(15, 11);
+	m_pParking->setGridPosition(15, 8);
 	m_pParking->getTransform()->position = m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->getTransform()->position + offset;
 	m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->setTileStatus(GOAL);
 	addChild(m_pParking);
@@ -405,15 +405,14 @@ void PlayScene::m_resetPathfinding()
 void PlayScene::m_resetSimulation()
 {
 	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
-	m_resetPathfinding();
 	// clear current status of ship and target tiles
 	m_getTile(m_pParking->getGridPosition())->setTileStatus(UNVISITED);
 	m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
 
 	// move target back to starting location
-	m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
-	m_pParking->setGridPosition(15.0f, 11.0f);
-	m_getTile(15, 11)->setTileStatus(GOAL);
+	m_pParking->getTransform()->position = m_getTile(15, 8)->getTransform()->position + offset;
+	m_pParking->setGridPosition(15.0f, 8.0f);
+	m_getTile(15, 8)->setTileStatus(GOAL);
 	goal_position[0] = m_pParking->getGridPosition().x;
 	goal_position[1] = m_pParking->getGridPosition().y;
 
@@ -423,6 +422,7 @@ void PlayScene::m_resetSimulation()
 	m_getTile(1, 3)->setTileStatus(START);
 	start_position[0] = m_pCar->getGridPosition().x;
 	start_position[1] = m_pCar->getGridPosition().y;
+	m_resetPathfinding();
 }
 
 void PlayScene::m_moveShip()
