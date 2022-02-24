@@ -65,10 +65,12 @@ void PlayScene::handleEvents()
 	}
 
 	//MOVE PLAYER [KEY = M]
-	
-	if (!m_carIsMoving)
+	if (EventManager::Instance().keyPressed(SDL_SCANCODE_M))
 	{
-		m_carIsMoving = true;
+		if (!m_carIsMoving)
+		{
+			m_carIsMoving = true;
+		}
 	}
 
 	//CALCULATE DISTANCE [KEY = F]
@@ -113,15 +115,15 @@ void PlayScene::start()
 	m_currentHeuristic = MANHATTAN;
 
 	m_pParking = new Target();
-	m_pParking->getTransform()->position = m_getTile(15, 11)->getTransform()->position + offset;
 	m_pParking->setGridPosition(15, 11);
-	m_getTile(15, 11)->setTileStatus(GOAL);
+	m_pParking->getTransform()->position = m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->getTransform()->position + offset;
+	m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->setTileStatus(GOAL);
 	addChild(m_pParking);
 
 	m_pCar = new Car();
-	m_pCar->getTransform()->position = m_getTile(1, 3)->getTransform()->position + offset;
 	m_pCar->setGridPosition(1, 3);
-	m_getTile(1, 3)->setTileStatus(START);
+	m_pCar->getTransform()->position = m_getTile(m_pCar->getGridPosition().x, m_pCar->getGridPosition().y)->getTransform()->position + offset;
+	m_getTile(m_pCar->getGridPosition().x, m_pCar->getGridPosition().y)->setTileStatus(START);
 	addChild(m_pCar);
 
 	m_pInstructions = new Label("Press 'F' to find the shortest path to the target!", "Consolas");
