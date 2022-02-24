@@ -27,8 +27,10 @@ void PlayScene::draw()
 void PlayScene::update()
 {
 	updateDisplayList();
-
-
+	if (m_carIsMoving)
+	{
+		m_moveShip();
+	}
 }
 
 void PlayScene::clean()
@@ -64,9 +66,9 @@ void PlayScene::handleEvents()
 
 	//MOVE PLAYER [KEY = M]
 	
-	if (!m_shipIsMoving)
+	if (!m_carIsMoving)
 	{
-		m_shipIsMoving = true;
+		m_carIsMoving = true;
 	}
 
 	//CALCULATE DISTANCE [KEY = F]
@@ -394,7 +396,7 @@ void PlayScene::m_resetPathfinding()
 	start_position[0] = m_pCar->getGridPosition().x;
 	start_position[1] = m_pCar->getGridPosition().y;
 	moveCounter = 0;
-	m_shipIsMoving = false;
+	m_carIsMoving = false;
 
 }
 
@@ -436,7 +438,7 @@ void PlayScene::m_moveShip()
 	}
 	else
 	{
-		m_shipIsMoving = false;
+		m_carIsMoving = false;
 	}
 }
 

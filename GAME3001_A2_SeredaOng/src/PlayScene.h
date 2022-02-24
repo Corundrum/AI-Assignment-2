@@ -64,7 +64,7 @@ private:
 
 	//Ship movement
 	int moveCounter = 0;
-	bool m_shipIsMoving = false;
+	bool m_carIsMoving = false;
 	void m_moveShip();
 
 	static int start_position[2];
