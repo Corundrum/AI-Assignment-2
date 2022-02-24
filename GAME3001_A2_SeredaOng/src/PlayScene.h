@@ -69,6 +69,10 @@ private:
 
 	static int start_position[2];
 	static int goal_position[2];
+
+	glm::vec2 current_path_tile_position;
+	glm::vec2 next_path_tile_position;
+
 };
 
 #endif /* defined (__PLAY_SCENE__) */

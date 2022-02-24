@@ -161,8 +161,8 @@ void Car::Arrive()
 void Car::LookWhereYoureGoing(glm::vec2 target_direction)
 {
 	float target_rotation = Util::signedAngle(getCurrentDirection(), target_direction) - 90;
-	auto left_des = Util::signedAngle(getCurrentDirection(), (Util::normalize(getTransform()->position - getLeftLeftLOSEndPoint()) - getCurrentDirection())) - 90;
-	auto right_des = -Util::signedAngle(getCurrentDirection(), (Util::normalize(getTransform()->position - getRightRightLOSEndPoint()) - getCurrentDirection())) - 90;
+	//auto left_des = Util::signedAngle(getCurrentDirection(), (Util::normalize(getTransform()->position - getLeftLeftLOSEndPoint()) - getCurrentDirection())) - 90;
+	//auto right_des = -Util::signedAngle(getCurrentDirection(), (Util::normalize(getTransform()->position - getRightRightLOSEndPoint()) - getCurrentDirection())) - 90;
 
 	if (target_rotation < 0)
 	{
@@ -170,61 +170,61 @@ void Car::LookWhereYoureGoing(glm::vec2 target_direction)
 	}
 	const float turn_sensitivity = 3.0f;
 
-	//middle
-	if (getCollisionWhiskers()[1])
-	{
-		if (getCollisionWhiskers()[0])
-		{
-			target_rotation += getTurnRate() * turn_sensitivity * 2;
-			getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
-		}
-		else if (getCollisionWhiskers()[2])
-		{
-			target_rotation -= getTurnRate() * turn_sensitivity * 2;
-			getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
-		}
-		else if (target_rotation > 0)
-		{
-			target_rotation -= getTurnRate() * turn_sensitivity * 2;
-			getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
-		}
-		else
-		{
-			target_rotation += getTurnRate() * turn_sensitivity * 2;
-			getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
-		}
-	}
+	////middle
+	//if (getCollisionWhiskers()[1])
+	//{
+	//	if (getCollisionWhiskers()[0])
+	//	{
+	//		target_rotation += getTurnRate() * turn_sensitivity * 2;
+	//		getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
+	//	}
+	//	else if (getCollisionWhiskers()[2])
+	//	{
+	//		target_rotation -= getTurnRate() * turn_sensitivity * 2;
+	//		getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
+	//	}
+	//	else if (target_rotation > 0)
+	//	{
+	//		target_rotation -= getTurnRate() * turn_sensitivity * 2;
+	//		getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
+	//	}
+	//	else
+	//	{
+	//		target_rotation += getTurnRate() * turn_sensitivity * 2;
+	//		getRigidBody()->velocity = getRigidBody()->velocity / 1.7f;
+	//	}
+	//}
 
-	//left left
-	if (getCollisionWhiskers()[3])
-	{
-		left_des += getTurnRate() * turn_sensitivity;
-		target_rotation += left_des;
-	}
-	//left
-	else if (getCollisionWhiskers()[0])
-	{
-		left_des += getTurnRate() * turn_sensitivity;
-		target_rotation += left_des;
-		getRigidBody()->velocity = getRigidBody()->velocity / 1.5f;
-	}
-	//right right
-	if (getCollisionWhiskers()[4])
-	{
-		right_des += getTurnRate() * turn_sensitivity;
-		target_rotation -= right_des;
-	}
-	//right
-	else if (getCollisionWhiskers()[2])
-	{
-		right_des += getTurnRate() * turn_sensitivity;
-		target_rotation -= right_des;
-		getRigidBody()->velocity = getRigidBody()->velocity / 1.5f;
-	}
+	////left left
+	//if (getCollisionWhiskers()[3])
+	//{
+	//	left_des += getTurnRate() * turn_sensitivity;
+	//	target_rotation += left_des;
+	//}
+	////left
+	//else if (getCollisionWhiskers()[0])
+	//{
+	//	left_des += getTurnRate() * turn_sensitivity;
+	//	target_rotation += left_des;
+	//	getRigidBody()->velocity = getRigidBody()->velocity / 1.5f;
+	//}
+	////right right
+	//if (getCollisionWhiskers()[4])
+	//{
+	//	right_des += getTurnRate() * turn_sensitivity;
+	//	target_rotation -= right_des;
+	//}
+	////right
+	//else if (getCollisionWhiskers()[2])
+	//{
+	//	right_des += getTurnRate() * turn_sensitivity;
+	//	target_rotation -= right_des;
+	//	getRigidBody()->velocity = getRigidBody()->velocity / 1.5f;
+	//}
 
 	setCurrentHeading(Util::lerpUnclamped(getCurrentHeading(), getCurrentHeading() + target_rotation, getTurnRate() * TheGame::Instance().getDeltaTime()));
 
-	updateWhiskers(getWhiskerAngle());
+	//updateWhiskers(getWhiskerAngle());
 }
 
 void Car::m_checkBounds()

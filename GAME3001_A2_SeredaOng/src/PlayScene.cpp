@@ -435,12 +435,21 @@ void PlayScene::m_moveShip()
 	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 	if (moveCounter < m_pPathList.size())
 	{
-		auto curret_path_tile_position = m_pPathList[moveCounter]->getGridPosition();
-		m_pCar->getTransform()->position = m_getTile(curret_path_tile_position)->getTransform()->position + offset;
-		m_pCar->setGridPosition(curret_path_tile_position.x, curret_path_tile_position.y);
+
+		
+		current_path_tile_position = m_pPathList[moveCounter]->getGridPosition();
+		
+		if (moveCounter + 1 < m_pPathList.size())
+		{
+			next_path_tile_position = m_pPathList[moveCounter + 1]->getGridPosition();
+		}
+
+		m_pCar->getTransform()->position = m_getTile(current_path_tile_position)->getTransform()->position + offset;
+		m_pCar->setGridPosition(current_path_tile_position.x, current_path_tile_position.y);
 		if (Game::Instance().getFrames() % 20 == 0)
 		{
 			moveCounter++;
+			m_pCar->setCurrentHeading(atan2((next_path_tile_position.y * 40 + 20) - m_pCar->getTransform()->position.y, (next_path_tile_position.x * 40 + 20) - m_pCar->getTransform()->position.x) * (180 / 3.14159));
 		}
 	}
 	else
@@ -458,7 +467,7 @@ void PlayScene::GUI_Function()
 	// See examples by uncommenting the following - also look at imgui_demo.cpp in the IMGUI filter
 	//ImGui::ShowDemoWindow();
 
-	ImGui::Begin("Lab  Debug Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove);
+	ImGui::Begin("Lab Debug Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove);
 
 	ImGui::Separator();
 
