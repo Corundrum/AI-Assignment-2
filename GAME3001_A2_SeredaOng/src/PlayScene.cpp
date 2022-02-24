@@ -110,7 +110,7 @@ void PlayScene::start()
 	// Set GUI Title
 	m_guiTitle = "Play Scene";
 
-	TextureManager::Instance().load("../Assets/Textures/citymap.jpg", "citymap");
+	TextureManager::Instance().load("../Assets/Textures/citymap2.jpg", "citymap");
 
 	SoundManager::Instance().load("../Assets/audio/citymusic.mp3", "citymusic", SOUND_MUSIC);
 	SoundManager::Instance().playMusic("citymusic", -1, 0);
@@ -120,7 +120,7 @@ void PlayScene::start()
 	m_currentHeuristic = MANHATTAN;
 
 	m_pParking = new Target();
-	m_pParking->setGridPosition(15, 8);
+	m_pParking->setGridPosition(13, 8);
 	m_pParking->getTransform()->position = m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->getTransform()->position + offset;
 	m_getTile(m_pParking->getGridPosition().x, m_pParking->getGridPosition().y)->setTileStatus(GOAL);
 	addChild(m_pParking);
@@ -415,9 +415,9 @@ void PlayScene::m_resetSimulation()
 	m_getTile(m_pCar->getGridPosition())->setTileStatus(UNVISITED);
 
 	// move target back to starting location
-	m_pParking->getTransform()->position = m_getTile(15, 8)->getTransform()->position + offset;
-	m_pParking->setGridPosition(15.0f, 8.0f);
-	m_getTile(15, 8)->setTileStatus(GOAL);
+	m_pParking->getTransform()->position = m_getTile(13, 8)->getTransform()->position + offset;
+	m_pParking->setGridPosition(13.0f, 8.0f);
+	m_getTile(13, 8)->setTileStatus(GOAL);
 	goal_position[0] = m_pParking->getGridPosition().x;
 	goal_position[1] = m_pParking->getGridPosition().y;
 
