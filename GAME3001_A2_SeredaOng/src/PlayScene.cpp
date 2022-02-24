@@ -71,6 +71,8 @@ void PlayScene::handleEvents()
 		if (!m_carIsMoving)
 		{
 			m_carIsMoving = true;
+			SoundManager::Instance().load("../Assets/audio/carMoving.ogg", "carmove", SOUND_SFX);
+			SoundManager::Instance().playSound("carmove", 0, -1);
 		}
 	}
 
@@ -115,6 +117,11 @@ void PlayScene::start()
 	SoundManager::Instance().load("../Assets/audio/citymusic.mp3", "citymusic", SOUND_MUSIC);
 	SoundManager::Instance().playMusic("citymusic", -1, 0);
 	SoundManager::Instance().setMusicVolume(5);
+
+	//SoundManager::Instance().load("../Assets/audio/carMoving.ogg", "carmove", SOUND_SFX);
+	SoundManager::Instance().load("../Assets/Audio/epicParkingJob.ogg", "goalsound", SOUND_SFX);
+
+
 	//setup the grid
 	m_buildGrid();
 	m_currentHeuristic = MANHATTAN;
@@ -455,6 +462,8 @@ void PlayScene::m_moveShip()
 	else
 	{
 		m_carIsMoving = false;
+		SoundManager::Instance().unload("carmove", SOUND_SFX);
+		SoundManager::Instance().playSound("goalsound", 0, -1);
 	}
 }
 
