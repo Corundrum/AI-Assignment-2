@@ -118,13 +118,23 @@ void PlayScene::start()
 	SoundManager::Instance().playMusic("citymusic", -1, 0);
 	SoundManager::Instance().setMusicVolume(5);
 
-	//SoundManager::Instance().load("../Assets/audio/carMoving.ogg", "carmove", SOUND_SFX);
 	SoundManager::Instance().load("../Assets/Audio/epicParkingJob.ogg", "goalsound", SOUND_SFX);
 
 
 	//setup the grid
 	m_buildGrid();
 	m_currentHeuristic = MANHATTAN;
+
+	for (int row = 0; row < Config::ROW_NUM; ++row)
+	{
+		for (int col = 0; col < Config::COL_NUM; ++col)
+		{
+			if (row != 3 && row != 11 && col != 5 && col != 13)
+			{
+				m_pGrid[row * 20 + col]->setTileStatus(IMPASSABLE);
+			}
+		}
+	}
 
 	m_pParking = new Target();
 	m_pParking->setGridPosition(13, 8);
@@ -398,9 +408,19 @@ void PlayScene::m_resetPathfinding()
 	m_ClosedList.shrink_to_fit();
 
 	//reset tile statuses
-	for (auto tile : m_pGrid)
+	for (int row = 0; row < Config::ROW_NUM; ++row)
 	{
-		tile->setTileStatus(UNVISITED);
+		for (int col = 0; col < Config::COL_NUM; ++col)
+		{
+			if (row != 3 && row != 11 && col != 5 && col != 13)
+			{
+				m_pGrid[row * 20 + col]->setTileStatus(IMPASSABLE);
+			}
+			else
+			{
+				m_pGrid[row * 20 + col]->setTileStatus(UNVISITED);
+			}
+		}
 	}
 
 	m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
