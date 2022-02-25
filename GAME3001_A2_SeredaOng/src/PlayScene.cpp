@@ -73,6 +73,7 @@ void PlayScene::handleEvents()
 			m_carIsMoving = true;
 			SoundManager::Instance().load("../Assets/audio/carMoving.ogg", "carmove", SOUND_SFX);
 			SoundManager::Instance().playSound("carmove", 0, -1);
+			SoundManager::Instance().setSoundVolume(35);
 		}
 	}
 
@@ -102,6 +103,35 @@ void PlayScene::handleEvents()
 		m_pParking->setGridPosition(int(EventManager::Instance().getMousePosition().x / Config::TILE_SIZE), int(EventManager::Instance().getMousePosition().y / Config::TILE_SIZE));
 		m_getTile(m_pParking->getGridPosition())->setTileStatus(GOAL);
 		m_computeTileCosts();
+	}
+
+	//OPEN INSTRUCTION MENU [KEY = O]
+	if (EventManager::Instance().keyPressed(SDL_SCANCODE_O))
+	{
+		if (m_menuOpen == false)
+		{
+			m_menuOpen = true;
+			m_pInstructionsO->setVisible(false);
+
+			m_pInstructionsF->setVisible(true);
+			m_pInstructionsM->setVisible(true);
+			m_pInstructionsH->setVisible(true);
+			m_pInstructionsR->setVisible(true);
+			m_pInstructionsLeft->setVisible(true);
+			m_pInstructionsRight->setVisible(true);
+		}
+		else
+		{
+			m_menuOpen = false;
+			m_pInstructionsO -> setVisible(true);
+
+			m_pInstructionsF->setVisible(false);
+			m_pInstructionsM->setVisible(false);
+			m_pInstructionsH->setVisible(false);
+			m_pInstructionsR->setVisible(false);
+			m_pInstructionsLeft->setVisible(false);
+			m_pInstructionsRight->setVisible(false);
+		}
 	}
 
 }
@@ -148,29 +178,45 @@ void PlayScene::start()
 	m_getTile(m_pCar->getGridPosition().x, m_pCar->getGridPosition().y)->setTileStatus(START);
 	addChild(m_pCar);
 
-	m_pInstructions = new Label("Press 'F' to find the shortest path to the target!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 460.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsO = new Label("Press 'O' to open and close the instructions menu!", "Consolas");
+	m_pInstructionsO->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 460.0f);
+	addChild(m_pInstructionsO);
 
-	m_pInstructions = new Label("Press 'M' to move the target!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 480.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsF = new Label("Press 'F' to find the shortest path to the target!", "Consolas");
+	m_pInstructionsF->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 460.0f);
+	addChild(m_pInstructionsF);
 
-	m_pInstructions = new Label("Press 'R' to reset the scene!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 500.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsF->setVisible(false);
 
-	m_pInstructions = new Label("Press 'H' to open the debug menu!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 520.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsM = new Label("Press 'M' to move the target!", "Consolas");
+	m_pInstructionsM->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 480.0f);
+	addChild(m_pInstructionsM);
 
-	m_pInstructions = new Label("'Left Click' a tile to set the start tile!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 540.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsM->setVisible(false);
 
-	m_pInstructions = new Label("'Right Click' a tile to set the goal tile!", "Consolas");
-	m_pInstructions->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 560.0f);
-	addChild(m_pInstructions);
+	m_pInstructionsR = new Label("Press 'R' to reset the scene!", "Consolas");
+	m_pInstructionsR->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 500.0f);
+	addChild(m_pInstructionsR);
+
+	m_pInstructionsR->setVisible(false);
+
+	m_pInstructionsH = new Label("Press 'H' to open the debug menu!", "Consolas");
+	m_pInstructionsH->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 520.0f);
+	addChild(m_pInstructionsH);
+
+	m_pInstructionsH->setVisible(false);
+
+	m_pInstructionsLeft = new Label("'Left Click' a tile to set the start tile!", "Consolas");
+	m_pInstructionsLeft->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 540.0f);
+	addChild(m_pInstructionsLeft);
+
+	m_pInstructionsLeft->setVisible(false);
+
+	m_pInstructionsRight = new Label("'Right Click' a tile to set the goal tile!", "Consolas");
+	m_pInstructionsRight->getTransform()->position = glm::vec2(Config::SCREEN_WIDTH * 0.5f, 560.0f);
+	addChild(m_pInstructionsRight);
+
+	m_pInstructionsRight->setVisible(false);
 
 	m_computeTileCosts();
 

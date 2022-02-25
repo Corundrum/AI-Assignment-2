@@ -31,7 +31,14 @@ private:
 	// Game Objects
 	Target* m_pParking;
 	Car* m_pCar;
-	Label* m_pInstructions;
+	Label* m_pInstructionsO;
+	Label* m_pInstructionsF;
+	Label* m_pInstructionsM;
+	Label* m_pInstructionsR;
+	Label* m_pInstructionsH;
+	Label* m_pInstructionsLeft;
+	Label* m_pInstructionsRight;
+	bool m_menuOpen = false;
 
 	//Pathfinding objects and functions
 	std::vector<Tile*> m_pGrid;
