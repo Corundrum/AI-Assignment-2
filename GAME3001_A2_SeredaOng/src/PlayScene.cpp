@@ -8,6 +8,8 @@
 #include "imgui_sdl.h"
 #include "Renderer.h"
 #include "Util.h"
+#include <sstream>
+#include <iomanip>
 
 PlayScene::PlayScene()
 {
@@ -20,9 +22,16 @@ PlayScene::~PlayScene()
 void PlayScene::draw()
 {
 	TextureManager::Instance().draw("citymap", 0, 0, 0, 255);
+	if (m_menuOpen == true)
+	{
+		Util::DrawFilledRect(glm::vec2(100, 425), 600, 200, glm::vec4(1, 1, 1, 1));
+	}
+	Util::DrawFilledRect(glm::vec2(600, 0), 200, 50, glm::vec4(1, 1, 1, 1));
+
 	drawDisplayList();
 
 	SDL_SetRenderDrawColor(Renderer::Instance().getRenderer(), 255, 255, 255, 255);
+	
 }
 
 void PlayScene::update()
@@ -32,6 +41,7 @@ void PlayScene::update()
 	{
 		m_moveShip();
 	}
+	
 }
 
 void PlayScene::clean()
@@ -82,6 +92,10 @@ void PlayScene::handleEvents()
 	if (EventManager::Instance().keyPressed(SDL_SCANCODE_F))
 	{
 		m_findShortestPath();
+		std::stringstream stream;
+		stream << std::fixed << std::setprecision(1) << "Path Size " << m_pPathList.size();
+		const std::string total_cost = stream.str();
+		m_pPathDistance->setText(total_cost);
 	}
 
 	//SELECT START TILE [LEFT CLICK]
@@ -119,6 +133,7 @@ void PlayScene::handleEvents()
 			m_pInstructionsR->setVisible(true);
 			m_pInstructionsLeft->setVisible(true);
 			m_pInstructionsRight->setVisible(true);
+
 		}
 		else
 		{
@@ -153,7 +168,7 @@ void PlayScene::start()
 
 	//setup the grid
 	m_buildGrid();
-	m_currentHeuristic = MANHATTAN;
+	m_currentHeuristic = EUCLIDEAN;
 
 	for (int row = 0; row < Config::ROW_NUM; ++row)
 	{
@@ -165,6 +180,8 @@ void PlayScene::start()
 			}
 		}
 	}
+
+
 
 	m_pParking = new Target();
 	m_pParking->setGridPosition(13, 8);
@@ -217,6 +234,10 @@ void PlayScene::start()
 	addChild(m_pInstructionsRight);
 
 	m_pInstructionsRight->setVisible(false);
+
+	m_pPathDistance = new Label("Path Size 0", "Consolas");
+	m_pPathDistance->getTransform()->position = glm::vec2(685.0f, 25.0f);
+	addChild(m_pPathDistance);
 
 	m_computeTileCosts();
 
@@ -321,6 +342,7 @@ void PlayScene::m_computeTileCosts()
 		switch (m_currentHeuristic)
 		{
 		case MANHATTAN:
+
 			dx = abs(tile->getGridPosition().x - m_pParking->getGridPosition().x);
 			dy = abs(tile->getGridPosition().y - m_pParking->getGridPosition().y);
 			distance = dx + dy;
@@ -330,8 +352,7 @@ void PlayScene::m_computeTileCosts()
 			distance = Util::distance(tile->getGridPosition(), m_pParking->getGridPosition());
 			break;
 		}
-
-		tile->setTileCost(distance);
+			tile->setTileCost(distance);
 	}
 }
 
@@ -346,7 +367,7 @@ Tile* PlayScene::m_getTile(glm::vec2 grid_position)
 	const auto row = grid_position.y;
 	return m_pGrid[(row * Config::COL_NUM) + col];
 }
-
+//FIND PATH
 void PlayScene::m_findShortestPath()
 {
 	// check if pathList is empty
@@ -380,7 +401,6 @@ void PlayScene::m_findShortestPath()
 				}
 				neighbour_list.push_back(neighbour);
 			}
-
 			// Step 2.b - for every neighbour in the neighbour list
 			for (auto neighbour : neighbour_list)
 			{
@@ -394,6 +414,12 @@ void PlayScene::m_findShortestPath()
 						min_tile = neighbour;
 						min_tile_index = count;
 					}
+					else if (neighbour->getTileCost() > min)
+					{
+						
+						
+					}
+					
 					count++;
 				}
 				else // neighbour is the goal tile
@@ -508,19 +534,17 @@ void PlayScene::m_moveShip()
 	auto offset = glm::vec2(Config::TILE_SIZE * 0.5f, Config::TILE_SIZE * 0.5f);
 	if (moveCounter < m_pPathList.size())
 	{
-
-		
 		current_path_tile_position = m_pPathList[moveCounter]->getGridPosition();
 		
 		if (moveCounter + 1 < m_pPathList.size())
 		{
 			next_path_tile_position = m_pPathList[moveCounter + 1]->getGridPosition();
 		}
-
 		m_pCar->getTransform()->position = m_getTile(current_path_tile_position)->getTransform()->position + offset;
 		m_pCar->setGridPosition(current_path_tile_position.x, current_path_tile_position.y);
 		if (Game::Instance().getFrames() % 20 == 0)
 		{
+			//m_pGrid[m_pCar->getGridPosition().y * 20 + m_pCar->getGridPosition().x]->setTileStatus(CLOSED);
 			moveCounter++;
 			m_pCar->setCurrentHeading(atan2((next_path_tile_position.y * 40 + 20) - m_pCar->getTransform()->position.y, (next_path_tile_position.x * 40 + 20) - m_pCar->getTransform()->position.x) * (180 / 3.14159));
 		}

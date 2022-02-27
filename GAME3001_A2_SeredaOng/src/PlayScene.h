@@ -38,6 +38,9 @@ private:
 	Label* m_pInstructionsH;
 	Label* m_pInstructionsLeft;
 	Label* m_pInstructionsRight;
+
+	Label* m_pPathDistance;
+
 	bool m_menuOpen = false;
 
 	//Pathfinding objects and functions
@@ -79,6 +82,7 @@ private:
 
 	glm::vec2 current_path_tile_position;
 	glm::vec2 next_path_tile_position;
+
 
 };
 
